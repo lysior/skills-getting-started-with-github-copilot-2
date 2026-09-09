@@ -67,10 +67,11 @@ def test_signup_rejects_duplicate_student():
 def test_signup_rejects_invalid_email():
     response = client.post(
         "/activities/Chess Club/signup",
-        params={"email": "invalid-email"},
+        params={"email": "dasisid@sfdg"},
     )
 
     assert response.status_code == 422
+    assert response.json()["detail"][0]["loc"] == ["query", "email"]
 
 
 def test_signup_rejects_full_activity():

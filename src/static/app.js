@@ -13,6 +13,20 @@ document.addEventListener("DOMContentLoaded", () => {
       .replaceAll("'", "&#039;");
   }
 
+  function getErrorMessage(result, fallback) {
+    if (Array.isArray(result.detail)) {
+      const emailError = result.detail.find(
+        (error) => error.loc?.includes("email")
+      );
+
+      if (emailError) {
+        return "Please enter a valid email address.";
+      }
+    }
+
+    return result.detail || fallback;
+  }
+
   // Function to fetch activities from API
   async function fetchActivities() {
     try {
@@ -127,7 +141,7 @@ document.addEventListener("DOMContentLoaded", () => {
         signupForm.reset();
         await fetchActivities();
       } else {
-        messageDiv.textContent = result.detail || "An error occurred";
+        messageDiv.textContent = getErrorMessage(result, "An error occurred");
         messageDiv.className = "error";
       }
 
