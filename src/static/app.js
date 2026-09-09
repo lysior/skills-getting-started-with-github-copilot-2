@@ -4,10 +4,23 @@ document.addEventListener("DOMContentLoaded", () => {
   const signupForm = document.getElementById("signup-form");
   const messageDiv = document.getElementById("message");
 
+  function escapeHtml(value) {
+    return value
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
   // Function to fetch activities from API
   async function fetchActivities() {
     try {
       const response = await fetch("/activities");
+      if (!response.ok) {
+        throw new Error("Failed to load activities");
+      }
+
       const activities = await response.json();
 
       // Clear loading message
@@ -22,9 +35,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const spotsLeft = details.max_participants - details.participants.length;
 
         activityCard.innerHTML = `
-          <h4>${name}</h4>
-          <p>${details.description}</p>
-          <p><strong>Schedule:</strong> ${details.schedule}</p>
+          <h4>${escapeHtml(name)}</h4>
+          <p>${escapeHtml(details.description)}</p>
+          <p><strong>Schedule:</strong> ${escapeHtml(details.schedule)}</p>
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
           <div class="participants">
             <h5>Signed-up students</h5>
@@ -33,13 +46,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 .map(
                   (email) => `
                     <li>
-                      <span>${email}</span>
+                      <span>${escapeHtml(email)}</span>
                       <button
                         class="remove-participant"
                         type="button"
-                        data-activity="${name}"
-                        data-email="${email}"
-                        aria-label="Unregister ${email} from ${name}"
+                        data-activity="${escapeHtml(name)}"
+                        data-email="${escapeHtml(email)}"
+                        aria-label="Unregister ${escapeHtml(email)} from ${escapeHtml(name)}"
                         title="Unregister participant"
                       >&times;</button>
                     </li>
@@ -50,6 +63,20 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         `;
 
+
+        activitiesList.appendChild(activityCard);
+
+        // Add option to select dropdown
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        activitySelect.appendChild(option);
+      });
+    } catch (error) {
+      activitiesList.innerHTML = "<p>Failed to load activities. Please try again later.</p>";
+      console.error("Error fetching activities:", error);
+    }
+  }
 
   activitiesList.addEventListener("click", async (event) => {
     const removeButton = event.target.closest(".remove-participant");
@@ -76,19 +103,6 @@ document.addEventListener("DOMContentLoaded", () => {
       messageDiv.classList.remove("hidden");
     }
   });
-        activitiesList.appendChild(activityCard);
-
-        // Add option to select dropdown
-        const option = document.createElement("option");
-        option.value = name;
-        option.textContent = name;
-        activitySelect.appendChild(option);
-      });
-    } catch (error) {
-      activitiesList.innerHTML = "<p>Failed to load activities. Please try again later.</p>";
-      console.error("Error fetching activities:", error);
-    }
-  }
 
   // Handle form submission
   signupForm.addEventListener("submit", async (event) => {

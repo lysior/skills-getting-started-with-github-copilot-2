@@ -64,6 +64,33 @@ def test_signup_rejects_duplicate_student():
     assert response.json()["detail"] == "Student is already signed up for this activity"
 
 
+def test_signup_rejects_invalid_email():
+    response = client.post(
+        "/activities/Chess Club/signup",
+        params={"email": "invalid-email"},
+    )
+
+    assert response.status_code == 422
+
+
+def test_signup_rejects_full_activity():
+    activity_name = "Chess Club"
+    participants = activities[activity_name]["participants"]
+    original_participants = participants.copy()
+    participants[:] = [f"student-{index}@mergington.edu" for index in range(12)]
+
+    try:
+        response = client.post(
+            f"/activities/{activity_name}/signup",
+            params={"email": "new-student@mergington.edu"},
+        )
+
+        assert response.status_code == 400
+        assert response.json()["detail"] == "Activity is full"
+    finally:
+        participants[:] = original_participants
+
+
 def test_unregister_removes_student_from_activity():
     activity_name = "Chess Club"
     email = "test-unregister@mergington.edu"
