@@ -22,9 +22,12 @@ document.addEventListener("DOMContentLoaded", () => {
       if (emailError) {
         return "Please enter a valid email address.";
       }
+
+      const firstError = result.detail[0];
+      return firstError?.msg || fallback;
     }
 
-    return result.detail || fallback;
+    return typeof result.detail === "string" ? result.detail : fallback;
   }
 
   // Function to fetch activities from API
